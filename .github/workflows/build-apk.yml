@@ -17,7 +17,7 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: نصب مواد (با فیکس libtinfo5 برای 24.04)
+    - name: نصب مواد (با فیکس libtinfo5 و Cython quote)
       run: |
         set -e  # متوقف شو اگر ارور
         sudo apt update -qq  # بروزرسانی ساکت
@@ -27,10 +27,10 @@ jobs:
         # حالا deps اصلی
         sudo apt install -y --no-install-recommends git zip unzip openjdk-17-jdk-headless python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
         pip install --upgrade pip setuptools wheel
-        pip install Cython<3.0 virtualenv buildozer  # Cython 0.29.x بدون conflict
+        pip install "Cython<3.0" virtualenv buildozer  # نقل قول برای version – فیکس redirection
         sudo apt update -qq  # دوباره برای deps Kivy
         sudo apt install -y --no-install-recommends build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev libssl-dev openssl libgdbm-dev libgdbm-compat-dev liblzma-dev libreadline-dev libncursesw5-dev libffi-dev uuid-dev libffi6 libgl1-mesa-dev libgles2-mesa-dev
-        echo "نصب deps تموم شد – libtinfo5 OK"
+        echo "نصب deps تموم شد – Cython و buildozer OK"
 
     - name: بپز APK
       run: |
